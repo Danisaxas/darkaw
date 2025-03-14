@@ -1,43 +1,41 @@
 <?php
-include('../db/config.php');
+// Incluir el archivo de configuración para la conexión a la base de datos
+require_once '../db/config.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+// Verificar si el formulario fue enviado
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Obtener los datos del formulario
     $email = $_POST['email'];
     $username = $_POST['username'];
-    $password = $_POST['password'];
+    $password = $_POST['password'];  // La contraseña en texto claro
     $full_name = $_POST['full_name'];
 
-    // Validación del nombre de usuario (solo letras y números, mínimo 6 caracteres)
-    if (!preg_match("/^[a-zA-Z0-9]{6,}$/", $username)) {
-        $error = "El nombre de usuario debe tener más de 6 caracteres y solo puede contener letras y números.";
+    // Verificar si el nombre de usuario o correo ya existe en la base de datos
+    $stmt = $conn->prepare("SELECT id FROM User WHERE username = ? OR email = ?");
+    $stmt->bind_param("ss", $username, $email);
+    $stmt->execute();
+    $stmt->store_result();
+    
+    if ($stmt->num_rows > 0) {
+        // Si el usuario o correo ya existe, mostrar un mensaje
+        echo "El nombre de usuario o correo ya está en uso.";
     } else {
-        // Encriptar la contraseña
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-        // Verificar si el nombre de usuario o el correo ya están registrados
-        $checkQuery = "SELECT * FROM User WHERE username = ? OR email = ?";
-        $stmt = $conn->prepare($checkQuery);
-        $stmt->bind_param('ss', $username, $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows > 0) {
-            $error = "El correo o el nombre de usuario ya están registrados.";
+        // Insertar el nuevo usuario con la contraseña en texto claro
+        $stmt = $conn->prepare("INSERT INTO User (email, username, password, full_name) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $email, $username, $password, $full_name);
+        
+        if ($stmt->execute()) {
+            // Si la inserción es exitosa, mostrar un mensaje
+            echo "Registro exitoso.";
         } else {
-            // Insertar los datos en la base de datos
-            $insertQuery = "INSERT INTO User (email, username, password, full_name) VALUES (?, ?, ?, ?)";
-            $stmt = $conn->prepare($insertQuery);
-            $stmt->bind_param('ssss', $email, $username, $hashed_password, $full_name);
-
-            if ($stmt->execute()) {
-                header('Location: login.php');
-            } else {
-                $error = "Error al registrar. Intenta nuevamente.";
-            }
+            // Si hubo un error, mostrar el mensaje de error
+            echo "Error al registrar al usuario: " . $stmt->error;
         }
     }
+    $stmt->close();
 }
+
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -45,26 +43,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro</title>
+    <title>Registro de Usuario</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
-    <h2>Registrarse</h2>
-    <?php if (isset($error)) echo "<p>$error</p>"; ?>
-    <form action="register.php" method="POST">
-        <label for="email">Correo:</label>
-        <input type="email" name="email" id="email" required><br><br>
-
-        <label for="username">Nombre de Usuario:</label>
-        <input type="text" name="username" id="username" required><br><br>
-
-        <label for="password">Contraseña:</label>
-        <input type="password" name="password" id="password" required><br><br>
-
-        <label for="full_name">Nombre Completo:</label>
-        <input type="text" name="full_name" id="full_name" required><br><br>
-
-        <input type="submit" value="Registrarse">
-    </form>
-    <p>¿Ya tienes cuenta? <a href="login.php">Inicia sesión aquí</a></p>
+    <div class="container">
+        <h2>Registrarse</h2>
+        <form action="register.php" method="POST">
+            <div>
+                <label for="email">Correo Electrónico:</label>
+                <input type="email" name="email" id="email" required>
+            </div>
+            <div>
+                <label for="username">Nombre de Usuario:</label>
+                <input type="text" name="username" id="username" required>
+            </div>
+            <div>
+                <label for="password">Contraseña:</label>
+                <input type="password" name="password" id="password" required>
+            </div>
+            <div>
+                <label for="full_name">Nombre Completo:</label>
+                <input type="text" name="full_name" id="full_name" required>
+            </div>
+            <div>
+                <button type="submit">Registrar</button>
+            </div>
+        </form>
+        <p>¿Ya tienes una cuenta? <a href="login.php">Iniciar sesión</a></p>
+    </div>
 </body>
 </html>
