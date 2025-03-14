@@ -1,36 +1,33 @@
 <?php
-session_start();
-include('../db/config.php');
+require_once '../db/config.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Obtener los datos del formulario
+// Verificar si el formulario fue enviado
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Consultar si el usuario existe en la base de datos
-    $query = "SELECT * FROM User WHERE username = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param('s', $username);
+    $stmt = $conn->prepare("SELECT id, username, password FROM User WHERE username = ?");
+    $stmt->bind_param("s", $username);
     $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result->num_rows > 0) {
-        $user = $result->fetch_assoc();
+    $stmt->store_result();
 
-        // Verificar la contraseña usando password_verify
-        if (password_verify($password, $user['password'])) {
-            // Guardar los datos del usuario en la sesión
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['full_name'] = $user['full_name'];
-            header('Location: ../index.php');
+    if ($stmt->num_rows > 0) {
+        $stmt->bind_result($id, $db_username, $db_password);
+        $stmt->fetch();
+
+        // Verificar la contraseña
+        if ($password === $db_password) {
+            echo "<div class='alert success'>¡Bienvenido de nuevo, $db_username!</div>";
         } else {
-            $error = "Contraseña incorrecta.";
+            echo "<div class='alert error'>Contraseña incorrecta.</div>";
         }
     } else {
-        $error = "El nombre de usuario no existe.";
+        echo "<div class='alert error'>Usuario no encontrado.</div>";
     }
+    $stmt->close();
 }
+
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -39,19 +36,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar sesión</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
-    <h2>Iniciar sesión</h2>
-    <?php if (isset($error)) echo "<p>$error</p>"; ?>
-    <form action="login.php" method="POST">
-        <label for="username">Nombre de Usuario:</label>
-        <input type="text" name="username" id="username" required><br><br>
-
-        <label for="password">Contraseña:</label>
-        <input type="password" name="password" id="password" required><br><br>
-
-        <input type="submit" value="Iniciar sesión">
-    </form>
-    <p>¿No tienes cuenta? <a href="register.php">Regístrate aquí</a></p>
+    <div class="container">
+        <div class="form-container">
+            <h2>Iniciar sesión</h2>
+            <form action="login.php" method="POST">
+                <div class="input-group">
+                    <label for="username">Nombre de Usuario:</label>
+                    <input type="text" name="username" id="username" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Contraseña:</label>
+                    <input type="password" name="password" id="password" required>
+                </div>
+                <div class="submit-btn">
+                    <button type="submit">Iniciar sesión</button>
+                </div>
+            </form>
+            <p>¿No tienes una cuenta? <a href="register.php">Regístrate</a></p>
+        </div>
+    </div>
 </body>
 </html>

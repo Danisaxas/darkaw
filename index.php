@@ -1,5 +1,6 @@
 <?php
-session_start();
+// Incluir el archivo de configuración para la conexión a la base de datos
+require_once 'db/config.php';
 ?>
 
 <!DOCTYPE html>
@@ -8,14 +9,18 @@ session_start();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Página Principal</title>
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-    <h1>Bienvenido</h1>
-    
-    <?php if (isset($_SESSION['user_id'])): ?>
-        <p>Hola, <?php echo $_SESSION['full_name']; ?>. <a href="pages/logout.php">Cerrar sesión</a></p>
-    <?php else: ?>
-        <p>No has iniciado sesión. <a href="pages/login.php">Inicia sesión</a> o <a href="pages/register.php">regístrate</a></p>
-    <?php endif; ?>
+    <div class="container">
+        <div class="welcome-box">
+            <h1>Bienvenido a nuestra plataforma</h1>
+            <p>Explora, regístrate e inicia sesión para acceder a todos los servicios.</p>
+            <div class="buttons">
+                <a href="pages/register.php" class="btn">Registrarse</a>
+                <a href="pages/login.php" class="btn">Iniciar sesión</a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

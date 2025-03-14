@@ -20,7 +20,7 @@ body {
     width: 100%;
 }
 
-.form-container {
+.form-container, .welcome-box {
     background-color: #1a1a1a;
     padding: 30px;
     border-radius: 10px;
@@ -31,7 +31,7 @@ body {
     animation: fadeIn 1s ease-in-out;
 }
 
-h2 {
+h2, h1 {
     margin-bottom: 20px;
     font-size: 24px;
 }
@@ -103,6 +103,20 @@ a:hover {
 
 .error {
     background-color: #dc3545;
+}
+
+.buttons .btn {
+    padding: 12px 30px;
+    margin: 10px;
+    background-color: #00bfae;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.buttons .btn:hover {
+    background-color: #009b8f;
 }
 
 @keyframes fadeIn {

@@ -1,34 +1,27 @@
 <?php
-// Incluir el archivo de configuración para la conexión a la base de datos
 require_once '../db/config.php';
 
 // Verificar si el formulario fue enviado
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Obtener los datos del formulario
     $email = $_POST['email'];
     $username = $_POST['username'];
     $password = $_POST['password'];  // La contraseña en texto claro
     $full_name = $_POST['full_name'];
 
-    // Verificar si el nombre de usuario o correo ya existe en la base de datos
     $stmt = $conn->prepare("SELECT id FROM User WHERE username = ? OR email = ?");
     $stmt->bind_param("ss", $username, $email);
     $stmt->execute();
     $stmt->store_result();
-    
+
     if ($stmt->num_rows > 0) {
-        // Si el usuario o correo ya existe, mostrar un mensaje
         echo "<div class='alert error'>El nombre de usuario o correo ya está en uso.</div>";
     } else {
-        // Insertar el nuevo usuario con la contraseña en texto claro
         $stmt = $conn->prepare("INSERT INTO User (email, username, password, full_name) VALUES (?, ?, ?, ?)");
         $stmt->bind_param("ssss", $email, $username, $password, $full_name);
-        
+
         if ($stmt->execute()) {
-            // Si la inserción es exitosa, mostrar un mensaje
             echo "<div class='alert success'>¡Registro exitoso!</div>";
         } else {
-            // Si hubo un error, mostrar el mensaje de error
             echo "<div class='alert error'>Error al registrar al usuario: " . $stmt->error . "</div>";
         }
     }
