@@ -1,9 +1,5 @@
 <?php
 session_start();
-if (isset($_SESSION['username'])) {
-    header("Location: welcome.php");
-    exit();
-}
 ?>
 
 <!DOCTYPE html>
@@ -11,20 +7,15 @@ if (isset($_SESSION['username'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Página Principal</title>
 </head>
 <body>
-    <h2>Iniciar sesión</h2>
-    <form action="login.php" method="POST">
-        <label for="username">Usuario:</label>
-        <input type="text" name="username" id="username" required><br><br>
-        
-        <label for="password">Contraseña:</label>
-        <input type="password" name="password" id="password" required><br><br>
-        
-        <input type="submit" value="Iniciar sesión">
-    </form>
-
-    <p>¿No tienes una cuenta? <a href="register.php">Registrate aquí</a></p>
+    <h1>Bienvenido</h1>
+    
+    <?php if (isset($_SESSION['user_id'])): ?>
+        <p>Hola, <?php echo $_SESSION['full_name']; ?>. <a href="pages/logout.php">Cerrar sesión</a></p>
+    <?php else: ?>
+        <p>No has iniciado sesión. <a href="pages/login.php">Inicia sesión</a> o <a href="pages/register.php">regístrate</a></p>
+    <?php endif; ?>
 </body>
 </html>

@@ -1,31 +1,8 @@
 <?php
-include('config.php');
-
-// Crear la tabla User si no existe
-$tableCheckQuery = "SHOW TABLES LIKE 'User'";
-$result = $conn->query($tableCheckQuery);
-
-if ($result->num_rows == 0) {
-    // La tabla no existe, crearla
-    $createTableQuery = "
-        CREATE TABLE User (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            email VARCHAR(255) NOT NULL UNIQUE,
-            username VARCHAR(255) NOT NULL UNIQUE,
-            password VARCHAR(255) NOT NULL,
-            full_name VARCHAR(255) NOT NULL
-        );
-    ";
-
-    if ($conn->query($createTableQuery) === TRUE) {
-        echo "Tabla 'User' creada exitosamente.<br>";
-    } else {
-        echo "Error al crear la tabla: " . $conn->error;
-    }
-}
+include('../db/config.php');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Obtener datos del formulario
+    // Obtener los datos del formulario
     $email = $_POST['email'];
     $username = $_POST['username'];
     $password = $_POST['password'];
@@ -33,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Validación del nombre de usuario (solo letras y números, mínimo 6 caracteres)
     if (!preg_match("/^[a-zA-Z0-9]{6,}$/", $username)) {
-        echo "El nombre de usuario debe tener más de 6 caracteres y solo puede contener letras y números.";
+        $error = "El nombre de usuario debe tener más de 6 caracteres y solo puede contener letras y números.";
     } else {
         // Encriptar la contraseña
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
@@ -46,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
-            echo "El correo o el nombre de usuario ya están registrados.";
+            $error = "El correo o el nombre de usuario ya están registrados.";
         } else {
             // Insertar los datos en la base de datos
             $insertQuery = "INSERT INTO User (email, username, password, full_name) VALUES (?, ?, ?, ?)";
@@ -54,9 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->bind_param('ssss', $email, $username, $hashed_password, $full_name);
 
             if ($stmt->execute()) {
-                echo "Registro exitoso. Puedes iniciar sesión.";
+                header('Location: login.php');
             } else {
-                echo "Error al registrar. Intenta nuevamente.";
+                $error = "Error al registrar. Intenta nuevamente.";
             }
         }
     }
@@ -72,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body>
     <h2>Registrarse</h2>
+    <?php if (isset($error)) echo "<p>$error</p>"; ?>
     <form action="register.php" method="POST">
         <label for="email">Correo:</label>
         <input type="email" name="email" id="email" required><br><br>
@@ -87,7 +65,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         <input type="submit" value="Registrarse">
     </form>
-
-    <p>¿Ya tienes una cuenta? <a href="index.php">Inicia sesión aquí</a></p>
+    <p>¿Ya tienes cuenta? <a href="login.php">Inicia sesión aquí</a></p>
 </body>
 </html>
